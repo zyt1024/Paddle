@@ -25,10 +25,10 @@ from paddle.base import Program, program_guard
 class TestUnbind(unittest.TestCase):
     def test_unbind(self):
         paddle.enable_static()
-
-        x_1 = paddle.static.data(shape=[2, 3], dtype='float32', name='x_1')
+        self.dtype = self.get_dtype()
+        x_1 = paddle.static.data(shape=[2, 3], dtype=self.dtype, name='x_1')
         [out_0, out_1] = tensor.unbind(input=x_1, axis=0)
-        input_1 = np.random.random([2, 3]).astype("float32")
+        input_1 = np.random.random([2, 3]).astype(self.dtype)
         axis = paddle.static.data(shape=[], dtype='int32', name='axis')
         exe = base.Executor(place=base.CPUPlace())
 
@@ -65,8 +65,9 @@ class TestUnbind(unittest.TestCase):
                 np.testing.assert_array_equal(res[1], input[1, :])
 
     def test_unbind_dygraph(self):
+        self.dtype = self.get_dtype()
         with base.dygraph.guard():
-            np_x = np.random.random([2, 3]).astype("float32")
+            np_x = np.random.random([2, 3]).astype(self.dtype)
             x = paddle.to_tensor(np_x)
             x.stop_gradient = False
             [res_1, res_2] = paddle.unbind(x, 0)
@@ -75,9 +76,12 @@ class TestUnbind(unittest.TestCase):
 
             out = paddle.add_n([res_1, res_2])
 
-            np_grad = np.ones(x.shape, np.float32)
+            np_grad = np.ones(x.shape, self.dtype)
             out.backward()
             np.testing.assert_array_equal(x.grad.numpy(False), np_grad)
+
+    def get_dtype(self):
+        return np.float32
 
 
 class TestLayersUnbind(unittest.TestCase):
@@ -119,6 +123,11 @@ class TestUnbindOp(OpTest):
         self.num = 3
         self.initParameters()
         x = np.arange(12).reshape(3, 2, 2).astype(self.dtype)
+        if self.dtype == np.complex64 or self.dtype == np.complex128:
+            x = (
+                np.arange(12).reshape(3, 2, 2)
+                + 1j * np.arange(12).reshape(3, 2, 2)
+            ).astype(self.dtype)
         self.out = np.split(x, self.num, self.axis)
         self.outReshape()
         self.inputs = {'X': x}
@@ -131,7 +140,7 @@ class TestUnbindOp(OpTest):
         self.python_out_sig = ['out%d' % i for i in range(len(self.out))]
 
     def get_dtype(self):
-        return "float64"
+        return np.float32
 
     def _set_op_type(self):
         self.op_type = "unbind"
@@ -265,6 +274,70 @@ class TestUnbindBF16Op(OpTest):
 
     def test_check_output(self):
         self.check_output()
+
+    def test_check_grad(self):
+        pass
+
+
+class TestUnbindOp1_Complex64(TestUnbindOp1):
+    def get_dtype(self):
+        return np.complex64
+
+    def test_check_grad(self):
+        pass
+
+
+class TestUnbindOp2_Complex64(TestUnbindOp2):
+    def get_dtype(self):
+        return np.complex64
+
+    def test_check_grad(self):
+        pass
+
+
+class TestUnbindOp3_Complex64(TestUnbindOp3):
+    def get_dtype(self):
+        return np.complex64
+
+    def test_check_grad(self):
+        pass
+
+
+class TestUnbindOp4_Complex64(TestUnbindOp4):
+    def get_dtype(self):
+        return np.complex64
+
+    def test_check_grad(self):
+        pass
+
+
+class TestUnbindOp1_Complex128(TestUnbindOp1):
+    def get_dtype(self):
+        return np.complex128
+
+    def test_check_grad(self):
+        pass
+
+
+class TestUnbindOp2_Complex128(TestUnbindOp2):
+    def get_dtype(self):
+        return np.complex128
+
+    def test_check_grad(self):
+        pass
+
+
+class TestUnbindOp3_Complex128(TestUnbindOp3):
+    def get_dtype(self):
+        return np.complex128
+
+    def test_check_grad(self):
+        pass
+
+
+class TestUnbindOp4_Complex128(TestUnbindOp4):
+    def get_dtype(self):
+        return np.complex128
 
     def test_check_grad(self):
         pass
