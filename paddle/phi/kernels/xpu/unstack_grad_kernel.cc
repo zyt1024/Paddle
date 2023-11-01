@@ -62,4 +62,6 @@ PD_REGISTER_KERNEL(unstack_grad,
                    float,
                    phi::dtype::float16,
                    int,
-                   int64_t) {}
+                   int64_t,
+                   phi::dtype::complex<float>,
+                   phi::dtype::complex<double>) {}

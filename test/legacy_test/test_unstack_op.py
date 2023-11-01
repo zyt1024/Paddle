@@ -43,7 +43,11 @@ class TestUnStackOpBase(OpTest):
         self.op_type = 'unstack'
         self.python_api = paddle.unstack
         self.x = np.random.random(size=self.input_dim).astype(self.dtype)
-
+        if self.dtype == np.complex64 or self.dtype == np.complex128:
+            self.x = (
+                np.random.random(size=self.input_dim)
+                + 1j * np.random.random(size=self.input_dim)
+            ).astype(self.dtype)
         outs = np.split(self.x, self.input_dim[self.axis], self.axis)
         new_shape = list(self.input_dim)
         del new_shape[self.axis]
@@ -115,6 +119,64 @@ class TestStackOp6(TestUnStackOpBase):
         self.axis = 2
 
 
+class TestUnStack_Complex64Op(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex64
+
+
+class TestUnStack_Complex64Op3(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex64
+        self.axis = -1
+
+
+class TestUnStack_Complex64Op4(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex64
+        self.axis = -3
+
+
+class TestUnStack_Complex64Op5(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex64
+        self.axis = 1
+
+
+class TestUnStack_Complex64Op6(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex64
+        self.axis = 2
+
+
+class TestUnStack_Complex128Op(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex128
+
+
+class TestUnStack_Complex128Op3(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex128
+        self.axis = -1
+
+
+class TestUnStack_Complex128Op4(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex128
+        self.axis = -3
+
+
+class TestUnStack_Complex128Op5(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex128
+        self.axis = 1
+
+
+class TestUnStack_Complex128Op6(TestUnStackOpBase):
+    def initParameters(self):
+        self.dtype = np.complex128
+        self.axis = 2
+
+
 @unittest.skipIf(
     not core.is_compiled_with_cuda()
     or not core.is_bfloat16_supported(core.CUDAPlace(0)),
@@ -183,14 +245,15 @@ class TestUnStackBF16Op(OpTest):
 class TestUnstackZeroInputOp(unittest.TestCase):
     def unstack_zero_input_static(self):
         paddle.enable_static()
-
-        array = np.array([], dtype=np.float32)
-        x = paddle.to_tensor(np.reshape(array, [0]), dtype='float32')
+        self.dtype = self.get_dtype()
+        array = np.array([], dtype=self.dtype)
+        x = paddle.to_tensor(np.reshape(array, [0]), dtype=self.dtype)
         paddle.unstack(x, axis=1)
 
     def unstack_zero_input_dynamic(self):
-        array = np.array([], dtype=np.float32)
-        x = paddle.to_tensor(np.reshape(array, [0]), dtype='float32')
+        self.dtype = self.get_dtype()
+        array = np.array([], dtype=self.dtype)
+        x = paddle.to_tensor(np.reshape(array, [0]), dtype=self.dtype)
         paddle.unstack(x, axis=1)
 
     def test_type_error(self):
@@ -200,6 +263,19 @@ class TestUnstackZeroInputOp(unittest.TestCase):
         self.assertRaises(ValueError, self.unstack_zero_input_static)
 
         paddle.disable_static()
+
+    def get_dtype(self):
+        return np.float32
+
+
+class TestUnstackZeroInputOp_Complex64(TestUnstackZeroInputOp):
+    def get_dtype(self):
+        return np.complex64
+
+
+class TestUnstackZeroInputOp_Complex128(TestUnstackZeroInputOp):
+    def get_dtype(self):
+        return np.complex128
 
 
 if __name__ == '__main__':
