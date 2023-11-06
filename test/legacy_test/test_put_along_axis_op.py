@@ -31,6 +31,11 @@ class TestPutAlongAxisOp(OpTest):
         self.op_type = "put_along_axis"
         self.python_api = paddle.tensor.put_along_axis
         self.xnp = np.random.random(self.x_shape).astype(self.x_type)
+        if self.dtype == np.complex64 or self.dtype == np.complex128:
+            self.xnp = (
+                np.random.uniform(-1, 1, self.x_shape)
+                + 1j * np.random.uniform(-1, 1, self.x_shape)
+            ).astype(self.x_type)
         # numpy put_along_axis is an inplace operation.
         self.xnp_result = copy.deepcopy(self.xnp)
         np.put_along_axis(self.xnp_result, self.index, self.value, self.axis)
@@ -77,6 +82,31 @@ class TestPutAlongAxisFP16Op(TestPutAlongAxisOp):
         self.index = np.array([[[0]]]).astype(self.index_type)
         self.axis = 1
         self.axis_type = "int64"
+
+
+# class TestPutAlongAxisOp_Complex64(TestPutAlongAxisOp):
+#     def init_data(self):
+#         self.dtype = np.complex64
+#         self.x_type = "complex64"
+#         self.x_shape = (10, 10, 10)
+#         self.value_type = "complex64"
+#         self.value = np.array([99]).astype(self.value_type)
+#         self.index_type = "int32"
+#         self.index = np.array([[[0]]]).astype(self.index_type)
+#         self.axis = 1
+#         self.axis_type = "int64"
+
+# class TestPutAlongAxisOp_Complex128(TestPutAlongAxisOp):
+#     def init_data(self):
+#         self.dtype = np.complex128
+#         self.x_type = "complex128"
+#         self.x_shape = (10, 10, 10)
+#         self.value_type = "complex128"
+#         self.value = np.array([99]).astype(self.value_type)
+#         self.index_type = "int32"
+#         self.index = np.array([[[0]]]).astype(self.index_type)
+#         self.axis = 1
+#         self.axis_type = "int64"
 
 
 @unittest.skipIf(

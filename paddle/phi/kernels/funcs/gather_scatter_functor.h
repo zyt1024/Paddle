@@ -29,7 +29,11 @@ namespace funcs {
           Instantiate_Template_Function_index_t(func, phi::dtype::float16)   \
               Instantiate_Template_Function_index_t(func,                    \
                                                     phi::dtype::bfloat16)    \
-                  Instantiate_Template_Function_index_t(func, unsigned char)
+                  Instantiate_Template_Function_index_t(func, unsigned char) \
+                      Instantiate_Template_Function_index_t(                 \
+                          func, phi::dtype::complex<float>)                  \
+                          Instantiate_Template_Function_index_t(             \
+                              func, phi::dtype::complex<double>)
 
 #define Instantiate_Template_Function_index_t(func, tensor_t)          \
   template void func<tensor_t, int>(phi::DenseTensor input,            \

@@ -79,4 +79,6 @@ PD_REGISTER_KERNEL(put_along_axis_grad,
                    double,
                    int,
                    uint8_t,
-                   int64_t) {}
+                   int64_t,
+                   phi::dtype::complex<float>,
+                   phi::dtype::complex<double>) {}

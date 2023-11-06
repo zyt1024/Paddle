@@ -4882,6 +4882,8 @@ def put_along_axis(arr, indices, values, axis, reduce='assign'):
                 'int64',
                 'uint8',
                 'uint16',
+                'complex64',
+                'complex128',
             ],
             'put_along_axis',
         )
