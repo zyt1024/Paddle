@@ -84,17 +84,20 @@ class TestPutAlongAxisFP16Op(TestPutAlongAxisOp):
         self.axis_type = "int64"
 
 
-# class TestPutAlongAxisOp_Complex64(TestPutAlongAxisOp):
-#     def init_data(self):
-#         self.dtype = np.complex64
-#         self.x_type = "complex64"
-#         self.x_shape = (10, 10, 10)
-#         self.value_type = "complex64"
-#         self.value = np.array([99]).astype(self.value_type)
-#         self.index_type = "int32"
-#         self.index = np.array([[[0]]]).astype(self.index_type)
-#         self.axis = 1
-#         self.axis_type = "int64"
+class TestPutAlongAxisOp_Complex64(TestPutAlongAxisOp):
+    def init_data(self):
+        self.dtype = np.complex64
+        self.x_type = "complex64"
+        self.x_shape = (10, 10, 10)
+        self.value_type = "complex64"
+        self.value = (np.array([99]) + 1j * np.array([99])).astype(
+            self.value_type
+        )
+        self.index_type = "int32"
+        self.index = np.array([[[0]]]).astype(self.index_type)
+        self.axis = 1
+        self.axis_type = "int64"
+
 
 # class TestPutAlongAxisOp_Complex128(TestPutAlongAxisOp):
 #     def init_data(self):

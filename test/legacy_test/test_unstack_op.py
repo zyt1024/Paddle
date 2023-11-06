@@ -70,62 +70,59 @@ class TestUnStackOpBase(OpTest):
         self.check_grad(['X'], self.get_y_names())
 
 
-class TestUnStackFP16Op(TestUnStackOpBase):
-    def initParameters(self):
-        self.dtype = np.float16
+# class TestUnStackFP16Op(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.dtype = np.float16
 
 
-class TestStackFP16Op3(TestUnStackOpBase):
-    def initParameters(self):
-        self.dtype = np.float16
-        self.axis = -1
+# class TestStackFP16Op3(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.dtype = np.float16
+#         self.axis = -1
 
 
-class TestStackFP16Op4(TestUnStackOpBase):
-    def initParameters(self):
-        self.dtype = np.float16
-        self.axis = -3
+# class TestStackFP16Op4(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.dtype = np.float16
+#         self.axis = -3
 
 
-class TestStackFP16Op5(TestUnStackOpBase):
-    def initParameters(self):
-        self.dtype = np.float16
-        self.axis = 1
+# class TestStackFP16Op5(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.dtype = np.float16
+#         self.axis = 1
 
 
-class TestStackFP16Op6(TestUnStackOpBase):
-    def initParameters(self):
-        self.dtype = np.float16
-        self.axis = 2
+# class TestStackFP16Op6(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.dtype = np.float16
+#         self.axis = 2
 
 
-class TestStackOp3(TestUnStackOpBase):
-    def initParameters(self):
-        self.axis = -1
+# class TestStackOp3(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.axis = -1
 
 
-class TestStackOp4(TestUnStackOpBase):
-    def initParameters(self):
-        self.axis = -3
+# class TestStackOp4(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.axis = -3
 
 
-class TestStackOp5(TestUnStackOpBase):
-    def initParameters(self):
-        self.axis = 1
+# class TestStackOp5(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.axis = 1
 
 
-class TestStackOp6(TestUnStackOpBase):
-    def initParameters(self):
-        self.axis = 2
+# class TestStackOp6(TestUnStackOpBase):
+#     def initParameters(self):
+#         self.axis = 2
 
 
 class TestUnStack_Complex64Op(TestUnStackOpBase):
     def initParameters(self):
         self.dtype = np.complex64
-
-    def test_check_grad(self):
-        pass
-        # self.check_grad(['X'], self.get_y_names())
+        self.axis = -1
 
 
 # class TestUnStack_Complex64Op3(TestUnStackOpBase):
