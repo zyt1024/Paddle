@@ -131,10 +131,14 @@ PD_REGISTER_STRUCT_KERNEL(shuffle_channel,
                           ALL_LAYOUT,
                           ops::ShuffleChannelOpCUDAKernel,
                           float,
-                          double) {}
+                          double,
+                          phi::dtype::complex<float>,
+                          phi::dtype::complex<double>) {}
 PD_REGISTER_STRUCT_KERNEL(shuffle_channel_grad,
                           GPU,
                           ALL_LAYOUT,
                           ops::ShuffleChannelGradOpCUDAKernel,
                           float,
-                          double) {}
+                          double,
+                          phi::dtype::complex<float>,
+                          phi::dtype::complex<double>) {}

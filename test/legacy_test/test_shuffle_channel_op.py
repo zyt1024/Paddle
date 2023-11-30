@@ -26,9 +26,34 @@ class TestShuffleChannelOp(OpTest):
         self.layer_h = 4
         self.layer_w = 4
         self.group = 4
+        self.init_dtype()
         self.x = np.random.random(
             (self.batch_size, self.input_channels, self.layer_h, self.layer_w)
-        ).astype('float32')
+        ).astype(self.dtype)
+        if self.dtype == 'complex64' or self.dtype == 'complex128':
+            self.x = (
+                np.random.uniform(
+                    0,
+                    1,
+                    (
+                        self.batch_size,
+                        self.input_channels,
+                        self.layer_h,
+                        self.layer_w,
+                    ),
+                )
+                + 1j
+                * np.random.uniform(
+                    0,
+                    1,
+                    (
+                        self.batch_size,
+                        self.input_channels,
+                        self.layer_h,
+                        self.layer_w,
+                    ),
+                )
+            ).astype(self.dtype)
         self.inputs = {'X': self.x}
         self.attrs = {'group': self.group}
         n, c, h, w = self.x.shape
@@ -37,6 +62,9 @@ class TestShuffleChannelOp(OpTest):
         )
         input_transposed = np.transpose(input_reshaped, (0, 2, 1, 3, 4))
         self.outputs = {'Out': np.reshape(input_transposed, (-1, c, h, w))}
+
+    def init_dtype(self):
+        self.dtype = 'float32'
 
     def test_check_output(self):
         self.check_output()

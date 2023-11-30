@@ -58,6 +58,10 @@ class TestChannelShuffleOp(OpTest):
         groups = 3
 
         x = np.random.random(shape).astype(self.dtype)
+        if self.dtype == 'complex64' or self.dtype == 'complex128':
+            x = (np.random.random(shape) + 1j * np.random.random(shape)).astype(
+                self.dtype
+            )
         npresult = channel_shuffle_np(x, groups, self.format)
 
         self.inputs = {'X': x}
@@ -82,12 +86,46 @@ class TestChannelLast(TestChannelShuffleOp):
         self.format = "NHWC"
 
 
+class TestChannel_complex64(TestChannelShuffleOp):
+    def init_dtype(self):
+        self.dtype = "complex64"
+
+
+class TestChannel_complex64_NHWC(TestChannel_complex64):
+    def init_data_format(self):
+        self.format = "NHWC"
+
+
+class TestChannel_complex128(TestChannelShuffleOp):
+    def init_dtype(self):
+        self.dtype = "complex128"
+
+
+class TestChannel_complex128_NHWC(TestChannel_complex128):
+    def init_data_format(self):
+        self.format = "NHWC"
+
+
 class TestChannelShuffleAPI(unittest.TestCase):
     def setUp(self):
-        self.x_1_np = np.random.random([2, 9, 4, 4]).astype("float64")
-        self.x_2_np = np.random.random([2, 4, 4, 9]).astype("float64")
+        self.init_dtype()
+        self.x_1_np = np.random.random([2, 9, 4, 4]).astype(self.dtype)
+        self.x_2_np = np.random.random([2, 4, 4, 9]).astype(self.dtype)
+        if self.dtype == "complex64" or self.dtype == "complex128":
+            self.x_1_np = (
+                np.random.random([2, 9, 4, 4])
+                + 1j * np.random.random([2, 9, 4, 4])
+            ).astype(self.dtype)
+            self.x_2_np = (
+                np.random.random([2, 4, 4, 9])
+                + 1j * np.random.random([2, 4, 4, 9])
+            ).astype(self.dtype)
+
         self.out_1_np = channel_shuffle_np(self.x_1_np, 3)
         self.out_2_np = channel_shuffle_np(self.x_2_np, 3, "NHWC")
+
+    def init_dtype(self):
+        self.dtype = "float64"
 
     def test_static_graph_functional(self):
         for use_cuda in (
@@ -96,32 +134,35 @@ class TestChannelShuffleAPI(unittest.TestCase):
             place = paddle.CUDAPlace(0) if use_cuda else paddle.CPUPlace()
 
             paddle.enable_static()
-            x_1 = paddle.static.data(
-                name="x", shape=[2, 9, 4, 4], dtype="float64"
-            )
-            x_2 = paddle.static.data(
-                name="x2", shape=[2, 4, 4, 9], dtype="float64"
-            )
-            out_1 = F.channel_shuffle(x_1, 3)
-            out_2 = F.channel_shuffle(x_2, 3, "NHWC")
+            prog = paddle.static.Program()
+            startup_prog = paddle.static.Program()
+            with paddle.static.program_guard(prog, startup_prog):
+                x_1 = paddle.static.data(
+                    name="x", shape=[2, 9, 4, 4], dtype=self.dtype
+                )
+                x_2 = paddle.static.data(
+                    name="x2", shape=[2, 4, 4, 9], dtype=self.dtype
+                )
+                out_1 = F.channel_shuffle(x_1, 3)
+                out_2 = F.channel_shuffle(x_2, 3, "NHWC")
 
-            exe = paddle.static.Executor(place=place)
-            res_1 = exe.run(
-                base.default_main_program(),
-                feed={"x": self.x_1_np},
-                fetch_list=out_1,
-                use_prune=True,
-            )
+                exe = paddle.static.Executor(place=place)
+                res_1 = exe.run(
+                    base.default_main_program(),
+                    feed={"x": self.x_1_np},
+                    fetch_list=out_1,
+                    use_prune=True,
+                )
 
-            res_2 = exe.run(
-                base.default_main_program(),
-                feed={"x2": self.x_2_np},
-                fetch_list=out_2,
-                use_prune=True,
-            )
+                res_2 = exe.run(
+                    base.default_main_program(),
+                    feed={"x2": self.x_2_np},
+                    fetch_list=out_2,
+                    use_prune=True,
+                )
 
-            np.testing.assert_allclose(res_1[0], self.out_1_np)
-            np.testing.assert_allclose(res_2[0], self.out_2_np)
+                np.testing.assert_allclose(res_1[0], self.out_1_np)
+                np.testing.assert_allclose(res_2[0], self.out_2_np)
 
     # same test between layer and functional in this op.
     def test_static_graph_layer(self):
@@ -131,37 +172,40 @@ class TestChannelShuffleAPI(unittest.TestCase):
             place = paddle.CUDAPlace(0) if use_cuda else paddle.CPUPlace()
 
             paddle.enable_static()
-            x_1 = paddle.static.data(
-                name="x", shape=[2, 9, 4, 4], dtype="float64"
-            )
-            x_2 = paddle.static.data(
-                name="x2", shape=[2, 4, 4, 9], dtype="float64"
-            )
-            # init instance
-            ps_1 = paddle.nn.ChannelShuffle(3)
-            ps_2 = paddle.nn.ChannelShuffle(3, "NHWC")
-            out_1 = ps_1(x_1)
-            out_2 = ps_2(x_2)
-            out_1_np = channel_shuffle_np(self.x_1_np, 3)
-            out_2_np = channel_shuffle_np(self.x_2_np, 3, "NHWC")
+            prog = paddle.static.Program()
+            startup_prog = paddle.static.Program()
+            with paddle.static.program_guard(prog, startup_prog):
+                x_1 = paddle.static.data(
+                    name="x", shape=[2, 9, 4, 4], dtype=self.dtype
+                )
+                x_2 = paddle.static.data(
+                    name="x2", shape=[2, 4, 4, 9], dtype=self.dtype
+                )
+                # init instance
+                ps_1 = paddle.nn.ChannelShuffle(3)
+                ps_2 = paddle.nn.ChannelShuffle(3, "NHWC")
+                out_1 = ps_1(x_1)
+                out_2 = ps_2(x_2)
+                out_1_np = channel_shuffle_np(self.x_1_np, 3)
+                out_2_np = channel_shuffle_np(self.x_2_np, 3, "NHWC")
 
-            exe = paddle.static.Executor(place=place)
-            res_1 = exe.run(
-                base.default_main_program(),
-                feed={"x": self.x_1_np},
-                fetch_list=out_1,
-                use_prune=True,
-            )
+                exe = paddle.static.Executor(place=place)
+                res_1 = exe.run(
+                    base.default_main_program(),
+                    feed={"x": self.x_1_np},
+                    fetch_list=out_1,
+                    use_prune=True,
+                )
 
-            res_2 = exe.run(
-                base.default_main_program(),
-                feed={"x2": self.x_2_np},
-                fetch_list=out_2,
-                use_prune=True,
-            )
+                res_2 = exe.run(
+                    base.default_main_program(),
+                    feed={"x2": self.x_2_np},
+                    fetch_list=out_2,
+                    use_prune=True,
+                )
 
-            np.testing.assert_allclose(res_1[0], out_1_np)
-            np.testing.assert_allclose(res_2[0], out_2_np)
+                np.testing.assert_allclose(res_1[0], out_1_np)
+                np.testing.assert_allclose(res_2[0], out_2_np)
 
     def run_dygraph(self, groups, data_format):
         n, c, h, w = 2, 9, 4, 4
@@ -171,7 +215,7 @@ class TestChannelShuffleAPI(unittest.TestCase):
         if data_format == "NHWC":
             shape = [n, h, w, c]
 
-        x = np.random.random(shape).astype("float64")
+        x = np.random.random(shape).astype(self.dtype)
 
         npresult = channel_shuffle_np(x, groups, data_format)
 
@@ -208,32 +252,68 @@ class TestChannelShuffleAPI(unittest.TestCase):
         self.run_dygraph(3, "NHWC")
 
 
+class TestChannelShuffleAPI_complex64(TestChannelShuffleAPI):
+    def init_dtype(self):
+        self.dtype = "complex64"
+
+
+class TestChannelShuffleAPI_complex128(TestChannelShuffleAPI):
+    def init_dtype(self):
+        self.dtype = "complex128"
+
+
 class TestChannelShuffleError(unittest.TestCase):
+    def setUp(self):
+        self.init_dtype()
+
+    def init_dtype(self):
+        self.dtype = "float64"
+
     def test_error_functional(self):
         def error_input():
             with paddle.base.dygraph.guard():
-                x = np.random.random([9, 4, 4]).astype("float64")
+                x = np.random.random([9, 4, 4]).astype(self.dtype)
+                if self.dtype == "complex64" or self.dtype == "complex128":
+                    x = (
+                        np.random.random([9, 4, 4])
+                        + np.random.random([9, 4, 4])
+                    ).astype(self.dtype)
                 channel_shuffle = F.channel_shuffle(paddle.to_tensor(x), 3)
 
         self.assertRaises(ValueError, error_input)
 
         def error_groups_1():
             with paddle.base.dygraph.guard():
-                x = np.random.random([2, 9, 4, 4]).astype("float64")
+                x = np.random.random([2, 9, 4, 4]).astype(self.dtype)
+                if self.dtype == "complex64" or self.dtype == "complex128":
+                    x = (
+                        np.random.random([2, 9, 4, 4])
+                        + np.random.random([2, 9, 4, 4])
+                    ).astype(self.dtype)
                 channel_shuffle = F.channel_shuffle(paddle.to_tensor(x), 3.33)
 
         self.assertRaises(TypeError, error_groups_1)
 
         def error_groups_2():
             with paddle.base.dygraph.guard():
-                x = np.random.random([2, 9, 4, 4]).astype("float64")
+                x = np.random.random([2, 9, 4, 4]).astype(self.dtype)
+                if self.dtype == "complex64" or self.dtype == "complex128":
+                    x = (
+                        np.random.random([2, 9, 4, 4])
+                        + np.random.random([2, 9, 4, 4])
+                    ).astype(self.dtype)
                 channel_shuffle = F.channel_shuffle(paddle.to_tensor(x), -1)
 
         self.assertRaises(ValueError, error_groups_2)
 
         def error_data_format():
             with paddle.base.dygraph.guard():
-                x = np.random.random([2, 9, 4, 4]).astype("float64")
+                x = np.random.random([2, 9, 4, 4]).astype(self.dtype)
+                if self.dtype == "complex64" or self.dtype == "complex128":
+                    x = (
+                        np.random.random([2, 9, 4, 4])
+                        + np.random.random([2, 9, 4, 4])
+                    ).astype(self.dtype)
                 channel_shuffle = F.channel_shuffle(
                     paddle.to_tensor(x), 3, "WOW"
                 )
@@ -243,7 +323,7 @@ class TestChannelShuffleError(unittest.TestCase):
     def test_error_layer(self):
         def error_input_layer():
             with paddle.base.dygraph.guard():
-                x = np.random.random([9, 4, 4]).astype("float64")
+                x = np.random.random([9, 4, 4]).astype(self.dtype)
                 cs = paddle.nn.ChannelShuffle(3)
                 cs(paddle.to_tensor(x))
 
@@ -251,21 +331,21 @@ class TestChannelShuffleError(unittest.TestCase):
 
         def error_groups_layer_1():
             with paddle.base.dygraph.guard():
-                x = np.random.random([2, 9, 4, 4]).astype("float64")
+                x = np.random.random([2, 9, 4, 4]).astype(self.dtype)
                 cs = paddle.nn.ChannelShuffle(3.33)
 
         self.assertRaises(TypeError, error_groups_layer_1)
 
         def error_groups_layer_2():
             with paddle.base.dygraph.guard():
-                x = np.random.random([2, 9, 4, 4]).astype("float64")
+                x = np.random.random([2, 9, 4, 4]).astype(self.dtype)
                 cs = paddle.nn.ChannelShuffle(-1)
 
         self.assertRaises(ValueError, error_groups_layer_2)
 
         def error_data_format_layer():
             with paddle.base.dygraph.guard():
-                x = np.random.random([2, 9, 4, 4]).astype("float64")
+                x = np.random.random([2, 9, 4, 4]).astype(self.dtype)
                 cs = paddle.nn.ChannelShuffle(3, "MEOW")
 
         self.assertRaises(ValueError, error_data_format_layer)

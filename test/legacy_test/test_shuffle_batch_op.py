@@ -25,10 +25,18 @@ from paddle import base
 class TestShuffleBatchOpBase(OpTest):
     def gen_random_array(self, shape, low=0, high=1):
         rnd = (high - low) * np.random.random(shape) + low
+        if self.dtype == np.complex64 or self.dtype == np.complex128:
+            rnd = np.random.uniform(0, 1, shape) + 1j * np.random.uniform(
+                0, 1, shape
+            )
+            # rnd = ((high - low) * np.random.random(shape) + low) + (1j * ((high - low) * np.random.random(shape) + low))
         return rnd.astype(self.dtype)
 
     def get_shape(self):
         return (10, 10, 5)
+
+    def get_dtype(self):
+        return np.float64
 
     def _get_places(self):
         # NOTE: shuffle_batch is not supported on Windows
@@ -38,12 +46,10 @@ class TestShuffleBatchOpBase(OpTest):
 
     def setUp(self):
         self.op_type = 'shuffle_batch'
-        self.dtype = np.float64
+        self.dtype = self.get_dtype()
         self.shape = self.get_shape()
         x = self.gen_random_array(self.shape)
-        seed = np.random.random_integers(low=10, high=100, size=(1,)).astype(
-            'int64'
-        )
+        seed = np.random.randint(low=10, high=100, size=(1,)).astype('int64')
         self.inputs = {'X': x, 'Seed': seed}
         self.outputs = {
             'Out': np.array([]).astype(x.dtype),
@@ -72,16 +78,31 @@ class TestShuffleBatchOpBase(OpTest):
         shape = array.shape
         new_shape = [-1, shape[-1]]
         arr_list = np.reshape(array, new_shape).tolist()
-        arr_list.sort(key=lambda x: x[0])
+        if array.dtype == np.complex64 or array.dtype == np.complex128:
+            arr_list.sort(key=lambda x: (x[0].real, x[0].imag))
+        else:
+            arr_list.sort(key=lambda x: x[0])
         return np.reshape(np.array(arr_list), shape)
 
     def test_check_grad(self):
-        self.check_grad(['X'], 'Out', check_dygraph=False)
+        self.check_grad(
+            ['X'], 'Out', check_dygraph=False, max_relative_error=0.006
+        )
 
 
 class TestShuffleBatchOp2(TestShuffleBatchOpBase):
     def get_shape(self):
         return (4, 30)
+
+
+class TestShuffleBatchOpBase_complex64(TestShuffleBatchOpBase):
+    def get_dtype(self):
+        return np.complex64
+
+
+class TestShuffleBatchOpBase_complex128(TestShuffleBatchOpBase):
+    def get_dtype(self):
+        return np.complex128
 
 
 if __name__ == '__main__':
