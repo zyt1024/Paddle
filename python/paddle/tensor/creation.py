@@ -853,6 +853,8 @@ def full_like(x, fill_value, dtype=None, name=None):
                 'int32',
                 'int64',
                 'uint16',
+                'complex64',
+                'complex128',
             ],
             'full_like',
         )
@@ -868,6 +870,8 @@ def full_like(x, fill_value, dtype=None, name=None):
                 'int32',
                 'int64',
                 'uint16',
+                'complex64',
+                'complex128',
             ],
             'full_like/zeros_like/ones_like',
         )
@@ -896,7 +900,7 @@ def fill_constant(shape, dtype, value, force_cpu=False, out=None, name=None):
             dtype = paddle.pir.core.vartype_to_datatype[dtype]
 
         if in_dynamic_mode():
-            value = float(value)
+            # value = float(value)
             if isinstance(shape, (list, tuple)):
                 shape = paddle.utils.convert_shape_to_list(shape)
 
@@ -910,22 +914,33 @@ def fill_constant(shape, dtype, value, force_cpu=False, out=None, name=None):
                 TypeError("Shape only supports OpReslut, or list, or tuple.")
 
         if out is None:
+            print("out is None   out is None =", dtype)
             out = _C_ops.full(shape, value, dtype, place)
             out.stop_gradient = True
             return out
 
         if out is not None:
+            print("xxxxxxxout is not None=", dtype)
             _C_ops.full_(out, shape, value, dtype, place)
             out.stop_gradient = True
             return out
 
     else:
+        print("静态")
         attrs = {'force_cpu': force_cpu}
         dtype = convert_dtype(dtype)
-        if not isinstance(value, Variable):
+        print(f"-------------type(value)={type(value)},dtype={dtype}")
+        if isinstance(value, core.Scalar):
+            attrs['str_value'] = str(value)
+            attrs['value'] = value
+        elif not isinstance(value, Variable):
             if dtype in ['int8', 'uint8', 'int16', 'int32', 'int64']:
                 attrs['str_value'] = str(int(value))
                 attrs['value'] = int(value)
+            elif dtype in ['complex64', 'complex128']:
+                print("99999999999999999999999999999999999999", dtype)
+                attrs['str_value'] = str(value)
+                attrs['value'] = value
             else:
                 attrs['str_value'] = str(float(value))
                 attrs['value'] = float(value)
@@ -1291,6 +1306,7 @@ def full(shape, fill_value, dtype=None, name=None):
     if dtype is None:
         dtype = paddle.get_default_dtype()
 
+    print("get_default_dtype=", dtype)
     return fill_constant(shape=shape, dtype=dtype, value=fill_value, name=name)
 
 

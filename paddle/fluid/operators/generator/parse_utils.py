@@ -100,6 +100,9 @@ def parse_input_and_attr(
         item = parse_arg(op_name, arg)
         typename = item["typename"]
         name = item["name"]
+
+        # if name in "full_like":
+        #     print("======={},{}".format(typename,name))
         if is_input(typename):
             assert len(attrs) == 0, (
                 f"The input Tensor should appear before attributes. "
@@ -116,6 +119,9 @@ def parse_input_and_attr(
                 met_attr_with_default_value = True
             if typename.startswith('Scalar') or typename == 'IntArray':
                 item['data_type'] = opmaker_attr_types_map[typename]
+            if typename.startswith('Scalar') and op_name == "full_like":
+                # print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",op_name)
+                item['data_type'] = "Scalar"
             attrs.append(item)
         else:
             raise KeyError(f"{op_name}: Invalid argument type {typename}.")
@@ -405,6 +411,9 @@ def parse_op_entry(op_entry: Dict[str, Any], name_field="op"):
     check_op_config(op_entry, op_name)
     # validate default value of DataType and DataLayout
     for attr in attrs:
+        # assert (
+        #            False
+        #         ), f"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz {attr}"
         if "default_value" in attr:
             typename = attr["typename"]
             default_value = attr["default_value"]

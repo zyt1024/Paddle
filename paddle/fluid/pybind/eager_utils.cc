@@ -2202,6 +2202,22 @@ paddle::experimental::Scalar CastPyArg2Scalar(PyObject* obj,
   PyTypeObject* type = obj->ob_type;
   auto type_name = std::string(type->tp_name);
   VLOG(4) << "type_name: " << type_name;
+  auto is = (type_name.find("numpy") != std::string::npos);
+  VLOG(6) << "zyt----------------------------------------------------obj type: "
+          << std::string(type->tp_name);
+  VLOG(6) << "zyt--------------------------" << type_name;
+  VLOG(6) << "zyt--------------------------PyBool_Check" << PyBool_Check(obj);
+  VLOG(6) << "zyt--------------------------PyLong_Check" << PyLong_Check(obj);
+  VLOG(6) << "zyt--------------------------PyFloat_Check" << PyFloat_Check(obj);
+  VLOG(6) << "zyt--------------------------PyCheckTensor" << PyCheckTensor(obj);
+  VLOG(6) << "zyt--------------------------xxxxxxx" << is;
+  VLOG(6) << "zyt--------------------------PyComplex_Check"
+          << PyComplex_Check(obj);
+  VLOG(6) << "zyt--------------------------PyObject_CheckLongOrToLong"
+          << PyObject_CheckLongOrToLong(&obj);
+  VLOG(6) << "zyt--------------------------PyObject_CheckString"
+          << PyObject_CheckString(obj);
+
   if (PyBool_Check(obj)) {
     bool value = CastPyArg2Boolean(obj, op_type, arg_pos);
     return paddle::experimental::Scalar(value);

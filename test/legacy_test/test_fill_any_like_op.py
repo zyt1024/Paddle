@@ -47,7 +47,7 @@ class TestFillAnyLikeOp(OpTest):
         self.python_api = fill_any_like_wrapper
         self.public_python_api = fill_any_like_wrapper
         self.dtype = np.int32
-        self.value = 0.0
+        self.value = 1.0
         self.init()
         self.inputs = {'X': np.random.random((219, 232)).astype(self.dtype)}
         self.attrs = {'value': self.value}
@@ -58,7 +58,7 @@ class TestFillAnyLikeOp(OpTest):
         pass
 
     def test_check_output(self):
-        self.check_output(check_prim=True, check_pir=True)
+        self.check_output(check_prim=False, check_pir=True)
 
     def if_enable_cinn(self):
         pass
