@@ -74,6 +74,8 @@ class FillConstantOp : public framework::OperatorWithKernel {
       const framework::ExecutionContext &ctx) const override {
     auto input_data_type =
         framework::proto::VarType::Type(ctx.Attr<int>("dtype"));
+
+    VLOG(6) << "zyt---------------------dtype-" << input_data_type;
     phi::KernelKey kt = phi::KernelKey(input_data_type, ctx.GetPlace());
     // TODO(zyfncg) The force_cpu and place_type are conflicted, it's an issue
     // left before, and we may merge them in the future.
@@ -121,7 +123,7 @@ class FillConstantOpMaker : public framework::OpProtoAndCheckerMaker {
     AddAttr<int>("dtype",
                  "(int, default 5 (FP32)) "
                  "Output data type")
-        .SetDefault(framework::proto::VarType::FP32);
+        .SetDefault(framework::proto::VarType::COMPLEX64);
     AddAttr<std::vector<int64_t>>("shape",
                                   "(vector<int64_t>) The shape of the output")
         .SetDefault({});

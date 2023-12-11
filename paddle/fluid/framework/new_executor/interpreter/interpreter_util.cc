@@ -747,6 +747,8 @@ void BuildOpFuncList(const platform::Place& place,
         SetDeviceCommContext(op, dev_ctx);
         auto exec_ctx = ExecutionContext(
             *op_with_kernel, *runtime_scope, *dev_ctx, runtime_context);
+        
+        VLOG(4) << "zyt----- before TransPhiKernelKeyToOpKernelType -------- kernel_key : " << op_with_kernel->GetExpectedKernelType(exec_ctx) ;
         auto expected_kernel_key = framework::TransPhiKernelKeyToOpKernelType(
             op_with_kernel->GetExpectedKernelType(exec_ctx));
 #if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)

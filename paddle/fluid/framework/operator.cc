@@ -3265,6 +3265,18 @@ void OperatorWithKernel::BuildPhiKernelContext(
     // attribute with Variable type has been placed into Inputs(), and
     // we can parse them from RuntimeContext.inputs.
     auto attr_iter = Attrs().find(attr_names[i]);
+    VLOG(6) << "zyt-------------------------------attr_defs[i].type_index=" << attr_defs[i].type_index;
+    VLOG(6) << "zyt-------------------------------phi::AttributeType::SCALAR=" << phi::AttributeType::SCALAR;
+    VLOG(6) << "zyt-------------------------------phi::AttributeType::INT_ARRAY=" << phi::AttributeType::INT_ARRAY;
+    VLOG(6) << "zyt-------------------------------phi::AttributeType::SCALARS=" << phi::AttributeType::SCALARS;
+
+    VLOG(6) << "zyt-----------------------------------" << AttrTypeID(attr_iter->second);
+    VLOG(6) << "zyt-------------------------------FLOAT=" << proto::AttrType::FLOAT;
+    VLOG(6) << "zyt-------------------------------FLOAT64=" << proto::AttrType::FLOAT64;
+    VLOG(6) << "zyt-------------------------------INT=" << proto::AttrType::INT;
+    VLOG(6) << "zyt-------------------------------LONG=" << proto::AttrType::LONG;
+    VLOG(6) << "zyt-------------------------------SCALAR=" << proto::AttrType::SCALAR;
+
     switch (attr_defs[i].type_index) {
       case phi::AttributeType::SCALAR:
         if (attr_iter != Attrs().end()) {
